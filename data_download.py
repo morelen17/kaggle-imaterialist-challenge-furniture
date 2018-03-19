@@ -1,7 +1,9 @@
+import argparse
 import concurrent.futures
+import logging
+import os
 import re
 import requests
-import traceback
 from functools import partial
 from multiprocessing import cpu_count
 from tqdm import tqdm
@@ -20,27 +22,51 @@ def download_image(url: str, folder: str, image_id: int, regexp):
                     file_extension = searched.groups()[0]
             with open("{}/{:0>6}.{}".format(folder, image_id, file_extension), 'wb') as img_file:
                 img_file.write(req.content)
-            return None
+            return
         else:
             raise Exception("Bad status: {}".format(req.status_code))
     except Exception as exc:
-        error_message = "Image ID: {}; Error: {}; Trace: {}".format(image_id, exc, traceback.format_exc())
-        return error_message
+        error_message = "Image ID: {}; Error: {}".format(image_id, exc)
+        logging.error(error_message)
+        return
 
 
-images, _ = get_json_data('data/train.json')
-reg = re.compile('image/(\w+)')
+def download_set(json_path: str, save_folder: str, log_path: str):
+    logging.basicConfig(filename=log_path, level=logging.ERROR)
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 2) as executor:
-    save_path = './data/images/train'
-    futures = []
-    for data in images:
-        url_str = data['url'][0]
-        img_id = data['image_id']
-        futures.append(executor.submit(partial(download_image, url_str, save_path, img_id, reg)))
-    results = [future.result() for future in tqdm(futures)]
+    images, _ = get_json_data(json_path)
+    reg = re.compile('image/(\w+)')
 
-errors = [r for r in results if r is not None]
-if len(errors) > 0:
-    with open('./logs/download-train.txt', 'w') as log_file:
-        log_file.writelines(errors)
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count() * 8) as executor:
+        futures = []
+        for data in images:
+            url_str = data['url'][0]
+            img_id = data['image_id']
+            futures.append(executor.submit(partial(download_image, url_str, save_folder, img_id, reg)))
+        [future.result() for future in tqdm(futures)]
+    return
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train', action='store_true')
+    parser.add_argument('--test', action='store_true')
+    parser.add_argument('--validation', action='store_true')
+    args = parser.parse_args()
+
+    if args.train:
+        download_set('data/train.json', './data/images/train', './logs/download-train.log')
+    elif args.test:
+        download_set('data/test.json', './data/images/test', './logs/download-test.log')
+    elif args.validation:
+        download_set('data/validation.json', './data/images/validation', './logs/download-validation.log')
+    else:
+        print('ooops!')
+    return
+
+
+if __name__ == "__main__":
+    main()

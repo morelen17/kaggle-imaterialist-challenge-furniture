@@ -8,8 +8,11 @@ from params import NUM_CLASS
 def get_json_data(path: str):
     with open(path) as json_data:
         data = json.load(json_data)
-        imgs = data['images'] or None
-        annos = data['annotations'] or None
+        imgs, annos = None, None
+        if 'images' in data:
+            imgs = data['images']
+        if 'annotations' in data:
+            annos = data['annotations']
         return imgs, annos
 
 
@@ -32,12 +35,13 @@ def show_class_distribution_plot(data: dict):
 
 
 def main():
-    images, annotations = get_json_data('data/train.json')
-    class_dist = get_class_distribution(annotations)
-    class_dist_sorted = dict(sorted(class_dist.items()))
-    show_class_distribution_plot(class_dist_sorted)
+    _, annotations = get_json_data('data/train.json')
 
-    print(class_dist.most_common(10))
+    if annotations is not None:
+        class_dist = get_class_distribution(annotations)
+        class_dist_sorted = dict(sorted(class_dist.items()))
+        show_class_distribution_plot(class_dist_sorted)
+        print(class_dist.most_common(10))
     return
 
 
