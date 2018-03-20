@@ -8,7 +8,7 @@ from functools import partial
 from multiprocessing import cpu_count
 from tqdm import tqdm
 
-from data_info import get_json_data
+from utils import get_json_data
 
 
 def download_image(url: str, folder: str, image_id: int, regexp):
