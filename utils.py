@@ -2,6 +2,7 @@ import collections
 import csv
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import re
 
@@ -76,6 +77,36 @@ def write_metadata(json_file: str, save_path: str, data_folder: str):
             if annotations[img_id - 1]:
                 writer.writerow([img_file, img_id, annotations[img_id - 1]['label_id']])
     return
+
+
+def extend_train_actual_csv():
+    csv_rows_by_class = {}
+    with open('./data/train_actual.csv', newline='') as file:
+        csv_reader = csv.reader(file)
+        next(csv_reader)  # skip header
+        for row in csv_reader:
+            if row[2] not in csv_rows_by_class:
+                csv_rows_by_class[row[2]] = list()
+            csv_rows_by_class[row[2]].append(row)
+
+    max_elements_for_class = max(map(lambda x: len(x), csv_rows_by_class.values()))
+    print('Max number of elements in single class:', max_elements_for_class)
+
+    extended_csv_rows_by_class = {}
+    for class_id, csv_rows_list in csv_rows_by_class.items():
+        rows_length = len(csv_rows_list)
+        for idx in np.random.choice(range(rows_length), max_elements_for_class - rows_length):
+            csv_rows_list.append(csv_rows_list[idx])
+        extended_csv_rows_by_class[class_id] = csv_rows_list
+
+    with open('./data/train_actual_extended.csv', 'w', newline='') as file:
+        writer = csv.writer(file, delimiter=',')
+        writer.writerow(['filename', 'id', 'class'])
+        for rows in extended_csv_rows_by_class.values():
+            for values in rows:
+                writer.writerow(values)
+
+    print('fin!')
 
 
 def main():

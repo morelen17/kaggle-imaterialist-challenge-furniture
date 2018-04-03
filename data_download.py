@@ -16,10 +16,10 @@ def download_image(url: str, folder: str, image_id: int, regexp):
         req = requests.get(url, timeout=60)
         if req.status_code == 200:
             file_extension = 'jpg'
-            if 'Content-Type' in req.headers:
-                searched = regexp.search(req.headers['Content-Type'])
-                if searched is not None:
-                    file_extension = searched.groups()[0]
+            # if 'Content-Type' in req.headers:
+            #     searched = regexp.search(req.headers['Content-Type'])
+            #     if searched is not None:
+            #         file_extension = searched.groups()[0]
             with open("{}/{:0>6}.{}".format(folder, image_id, file_extension), 'wb') as img_file:
                 img_file.write(req.content)
             return
