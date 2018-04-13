@@ -157,7 +157,7 @@ def train_dataset():
 
 def validation_dataset():
     train_data_folder = './data/images/validation/'
-    ds = tf.data.TextLineDataset(['./data/validation_actual_extended.csv']).skip(1)
+    ds = tf.data.TextLineDataset(['./data/validation_actual.csv']).skip(1)
     ds = ds.shuffle(buffer_size=TRAIN_SET_ACTUAL_SIZE)  # or 10k is OKNOTOK ???
     ds = ds.map(lambda x: _map_func(x, train_data_folder), num_parallel_calls=cpu_count())
     ds = ds.batch(BATCH_SIZE)

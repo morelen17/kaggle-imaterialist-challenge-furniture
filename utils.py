@@ -110,15 +110,16 @@ def extend_train_actual_csv():
 
 
 def main():
-    _, annotations = get_json_data('data/train.json')
+    # _, annotations = get_json_data('data/train.json')
+    # if annotations is not None:
+    #    class_dist = get_class_distribution(annotations)
+    #    class_dist_sorted = dict(sorted(class_dist.items()))
+    #    show_class_distribution_plot(class_dist_sorted)
+    #    print(class_dist.most_common(10))
 
-    if annotations is not None:
-        class_dist = get_class_distribution(annotations)
-        class_dist_sorted = dict(sorted(class_dist.items()))
-        show_class_distribution_plot(class_dist_sorted)
-        print(class_dist.most_common(10))
+    write_metadata('./data/train.json', './data/train_actual.csv', './data/images/train/')
+    extend_train_actual_csv()
+
+    write_metadata('./data/validation.json', './data/validation_actual.csv', './data/images/validation/')
+
     return
-
-
-if __name__ == "__main__":
-    main()
